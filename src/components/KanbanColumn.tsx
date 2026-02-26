@@ -18,10 +18,34 @@ interface ColumnProps {
 }
 
 const columnConfig = {
-  incoming: { title: '📥 INCOMING', bgColor: 'bg-slate-800', borderColor: 'border-slate-700' },
-  'in-progress': { title: '⚡ IN PROGRESS', bgColor: 'bg-slate-800', borderColor: 'border-slate-700' },
-  waiting: { title: '⏳ WAITING / COMMENTS', bgColor: 'bg-slate-800', borderColor: 'border-slate-700' },
-  completed: { title: '✅ COMPLETED', bgColor: 'bg-slate-800', borderColor: 'border-slate-700' },
+  incoming: { 
+    title: '📥 INCOMING', 
+    icon: '📨',
+    gradient: 'from-blue-950/30 to-slate-900/30',
+    borderColor: 'border-blue-500/30',
+    bgLight: 'bg-blue-950/10',
+  },
+  'in-progress': { 
+    title: '⚡ IN PROGRESS',
+    icon: '⚙️',
+    gradient: 'from-purple-950/30 to-slate-900/30',
+    borderColor: 'border-purple-500/30',
+    bgLight: 'bg-purple-950/10',
+  },
+  waiting: { 
+    title: '⏳ WAITING / COMMENTS',
+    icon: '💬',
+    gradient: 'from-amber-950/30 to-slate-900/30',
+    borderColor: 'border-amber-500/30',
+    bgLight: 'bg-amber-950/10',
+  },
+  completed: { 
+    title: '✅ COMPLETED',
+    icon: '🎉',
+    gradient: 'from-emerald-950/30 to-slate-900/30',
+    borderColor: 'border-emerald-500/30',
+    bgLight: 'bg-emerald-950/10',
+  },
 };
 
 export const KanbanColumn: React.FC<ColumnProps> = ({
@@ -39,42 +63,68 @@ export const KanbanColumn: React.FC<ColumnProps> = ({
   onDragStart,
 }) => {
   const config = columnConfig[column];
+  const activeCards = cards.filter(c => c.isActive).length;
 
   return (
     <div
-      className={`${config.bgColor} rounded-lg border ${config.borderColor} p-4 flex flex-col h-full`}
+      className={`bg-gradient-to-br ${config.gradient} rounded-xl border ${config.borderColor} p-5 flex flex-col h-full backdrop-blur-sm transition-all duration-300 hover:border-opacity-60`}
       onDrop={(e) => onDrop(e, column)}
       onDragOver={onDragOver}
     >
-      {/* Column Header */}
-      <div className="mb-4 pb-3 border-b border-gray-700">
-        <h2 className="text-white font-bold text-sm tracking-widest">{config.title}</h2>
-        <p className="text-gray-400 text-xs mt-1">
-          {cards.length} {cards.length === 1 ? 'assignment' : 'assignments'}
-        </p>
+      {/* Column Header - Premium */}
+      <div className={`mb-4 pb-4 border-b border-gray-700/50 transition-all duration-300`}>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-white font-bold text-sm tracking-widest uppercase flex items-center gap-2">
+              <span className="text-lg animate-float">{config.icon}</span>
+              {config.title}
+            </h2>
+            <p className="text-gray-400 text-xs mt-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-slate-700/50 flex items-center justify-center font-bold">
+                {cards.length}
+              </span>
+              {cards.length === 1 ? 'assignment' : 'assignments'}
+              {activeCards > 0 && (
+                <>
+                  <span className="text-green-400 font-semibold">•</span>
+                  <span className="text-green-400 text-xs font-semibold animate-pulse">{activeCards} live</span>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Cards Container */}
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+      <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
         {cards.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <div className="text-2xl mb-2">━</div>
-            <p className="text-xs">No tasks</p>
+          <div className={`text-center py-12 transition-all duration-300 ${config.bgLight} rounded-lg border border-dashed border-gray-600/50`}>
+            <div className="text-4xl mb-2 animate-bounce-light opacity-50">━</div>
+            <p className="text-gray-500 font-semibold">No tasks</p>
+            <p className="text-gray-600 text-xs mt-1">Drag a card here to get started</p>
           </div>
         ) : (
-          cards.map(card => (
-            <KanbanCard
+          cards.map((card, index) => (
+            <div 
               key={card.id}
-              card={card}
-              formattedTime={formattedTimes[card.id] || '00:00:00'}
-              urgencyLevel={urgencyLevels[card.id] || 'low'}
-              onStart={onStart}
-              onPause={onPause}
-              onReset={onReset}
-              onUpdateNotes={onUpdateNotes}
-              onDelete={onDelete}
-              onDragStart={onDragStart}
-            />
+              className="animate-slide-up"
+              style={{
+                animationDelay: `${index * 50}ms`,
+                animationFillMode: 'both',
+              }}
+            >
+              <KanbanCard
+                card={card}
+                formattedTime={formattedTimes[card.id] || '00:00:00'}
+                urgencyLevel={urgencyLevels[card.id] || 'low'}
+                onStart={onStart}
+                onPause={onPause}
+                onReset={onReset}
+                onUpdateNotes={onUpdateNotes}
+                onDelete={onDelete}
+                onDragStart={onDragStart}
+              />
+            </div>
           ))
         )}
       </div>

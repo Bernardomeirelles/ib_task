@@ -101,6 +101,7 @@ export const App: React.FC = () => {
   const handleDragStart = (e: React.DragEvent, cardId: string) => {
     setDraggedCardId(cardId);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setDragImage(e.currentTarget, 0, 0);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -113,7 +114,7 @@ export const App: React.FC = () => {
     if (!draggedCardId) return;
 
     const card = state.cards[draggedCardId];
-    if (card) {
+    if (card && card.columnType !== targetColumn) {
       const movedCard = kanbanService.moveCard(card, targetColumn);
       const newState = { ...state };
       newState.cards[draggedCardId] = movedCard;
@@ -123,84 +124,98 @@ export const App: React.FC = () => {
     setDraggedCardId(null);
   };
 
-  // Count active tasks for status bar
+  // Calculate stats
   const activeTasksCount = Object.values(state.cards).filter(c => c.isActive).length;
   const completedCount = Object.values(state.cards).filter(c => c.columnType === 'completed').length;
+  const totalCards = Object.values(state.cards).length;
+  const completionRate = totalCards === 0 ? 0 : Math.round((completedCount / totalCards) * 100);
+  const avgTimeLiveCards = Object.values(state.cards)
+    .filter(c => c.columnType !== 'completed')
+    .reduce((sum, c) => sum + c.elapsedTime, 0) / Math.max(totalCards - completedCount, 1);
 
   return (
     <div className="min-h-screen bg-slate-900 text-gray-100">
       {/* Header */}
-      <header className="bg-slate-950 border-b border-gray-700 sticky top-0 z-40">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white tracking-widest">
-                🏛️ IB STAFFING BOARD
-              </h1>
-              <p className="text-gray-400 text-xs mt-1">Investment Banking Workflow Manager</p>
-            </div>
-
-            <div className="flex items-center gap-6">
-              {/* Status Indicators */}
-              <div className="flex gap-4 text-xs">
-                <div className="text-center">
-                  <div className="text-green-400 font-bold text-lg">{activeTasksCount}</div>
-                  <div className="text-gray-400">Active</div>
-                </div>
-                <div className="border-l border-gray-600"></div>
-                <div className="text-center">
-                  <div className="text-blue-400 font-bold text-lg">
-                    {Object.values(state.cards).length}
-                  </div>
-                  <div className="text-gray-400">Total</div>
-                </div>
-                <div className="border-l border-gray-600"></div>
-                <div className="text-center">
-                  <div className="text-gray-400 font-bold text-lg">{completedCount}</div>
-                  <div className="text-gray-400">Done</div>
-                </div>
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-slate-950/95 via-slate-950/95 to-slate-900/95 border-b border-blue-500/20 backdrop-blur-md shadow-card">
+        <div className="px-8 py-5">
+          <div className="flex items-center justify-between gap-6">
+            {/* Title Section */}
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="text-3xl animate-float">🏛️</div>
+                <h1 className="text-3xl font-black text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text tracking-wider">
+                  IB STAFFING BOARD
+                </h1>
               </div>
-
-              {/* Create Button */}
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition shadow-lg"
-              >
-                + NEW STAFFING
-              </button>
+              <p className="text-gray-400 text-sm font-mono">Investment Banking Workflow Manager • Real-Time Task Tracking</p>
             </div>
+
+            {/* Status Indicators - Premium */}
+            <div className="flex items-center gap-8 px-6 py-4 rounded-lg bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-blue-500/20 backdrop-blur-sm">
+              <div className="text-center">
+                <div className="text-green-400 font-black text-3xl animate-glow">{activeTasksCount}</div>
+                <div className="text-gray-400 text-xs font-bold uppercase tracking-wide mt-1">Active</div>
+              </div>
+              <div className="w-px h-12 bg-gradient-to-b from-transparent via-blue-500/50 to-transparent"></div>
+              <div className="text-center">
+                <div className="text-blue-400 font-black text-3xl">{totalCards}</div>
+                <div className="text-gray-400 text-xs font-bold uppercase tracking-wide mt-1">Total</div>
+              </div>
+              <div className="w-px h-12 bg-gradient-to-b from-transparent via-blue-500/50 to-transparent"></div>
+              <div className="text-center">
+                <div className="text-emerald-400 font-black text-3xl">{completedCount}</div>
+                <div className="text-gray-400 text-xs font-bold uppercase tracking-wide mt-1">Complete</div>
+              </div>
+              <div className="w-px h-12 bg-gradient-to-b from-transparent via-blue-500/50 to-transparent"></div>
+              <div className="text-center">
+                <div className="text-yellow-400 font-black text-2xl">{completionRate}%</div>
+                <div className="text-gray-400 text-xs font-bold uppercase tracking-wide mt-1">Progress</div>
+              </div>
+            </div>
+
+            {/* Create Button - Premium */}
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-black py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-glow-blue hover:shadow-lg flex items-center gap-2 whitespace-nowrap"
+            >
+              <span>+</span>
+              NEW STAFFING
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Board */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="grid grid-cols-4 gap-4 h-[calc(100vh-180px)]">
-            {state.columnOrder.map(column => (
-              <KanbanColumn
-                key={column}
-                column={column}
-                cards={kanbanService.getCardsByColumn(state.cards, column)}
-                formattedTimes={formattedTimes}
-                urgencyLevels={urgencyLevels}
-                onStart={handleStartTimer}
-                onPause={handlePauseTimer}
-                onReset={handleResetTimer}
-                onUpdateNotes={handleUpdateNotes}
-                onDelete={handleDeleteCard}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragStart={handleDragStart}
-              />
+        <div className="p-8">
+          <div className="grid grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+            {state.columnOrder.map((column, index) => (
+              <div key={column} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                <KanbanColumn
+                  column={column}
+                  cards={kanbanService.getCardsByColumn(state.cards, column)}
+                  formattedTimes={formattedTimes}
+                  urgencyLevels={urgencyLevels}
+                  onStart={handleStartTimer}
+                  onPause={handlePauseTimer}
+                  onReset={handleResetTimer}
+                  onUpdateNotes={handleUpdateNotes}
+                  onDelete={handleDeleteCard}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragStart={handleDragStart}
+                />
+              </div>
             ))}
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-gray-700 px-6 py-3 text-center text-gray-500 text-xs">
-        <p>💾 All data saved locally • No servers • Work offline</p>
+      <footer className="bg-gradient-to-r from-slate-950/95 to-slate-900/95 border-t border-blue-500/20 backdrop-blur-md px-8 py-4 text-center">
+        <p className="text-gray-500 text-sm font-mono">
+          💾 All data persisted locally • ⚡ Real-time timers • 🔒 100% Offline • Premium UI
+        </p>
       </footer>
 
       {/* New Card Form Modal */}
