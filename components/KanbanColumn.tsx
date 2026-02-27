@@ -32,18 +32,18 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`bg-dark-bg rounded-lg p-4 min-h-96 flex flex-col transition ${
-            snapshot.isDraggingOver ? 'bg-opacity-50 ring-2 ring-neutral-600' : ''
+          className={`bg-gray-50 rounded-lg p-4 min-h-96 flex flex-col transition shadow-lg border border-gray-200 ${
+            snapshot.isDraggingOver ? 'bg-gray-100 ring-2 ring-red-500 shadow-xl' : ''
           }`}
         >
-          <h2 className="text-sm font-semibold text-white mb-4 uppercase tracking-wide">
+          <h2 className="text-sm font-semibold text-gray-800 mb-4 uppercase tracking-wide">
             {title}
-            <span className="ml-2 text-xs text-neutral-400 font-normal">({tasks.length})</span>
+            <span className="ml-2 text-xs text-gray-500 font-normal">({tasks.length})</span>
           </h2>
 
           <div className="space-y-2 flex-1">
             {tasks.length === 0 ? (
-              <div className="flex items-center justify-center h-40 text-neutral-500 text-sm">
+              <div className="flex items-center justify-center h-40 text-gray-500 text-sm">
                 No tasks
               </div>
             ) : (

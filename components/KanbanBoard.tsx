@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Task, Column, AnalyticsEntry } from '@/types';
-import { TopBar } from './TopBar';
+import { TopNavBar } from './TopNavBar';
 import { KanbanColumn } from './KanbanColumn';
 import { CreateTaskModal } from './CreateTaskModal';
 import { AnalyticsView } from './AnalyticsView';
@@ -12,11 +12,11 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Plus } from 'lucide-react';
 
 const COLUMNS: Column[] = [
-  { id: 'incoming', title: 'Incoming' },
-  { id: 'in-progress', title: 'In Progress' },
-  { id: 'waiting', title: 'Waiting / Comments' },
-  { id: 'adjusting-comments', title: 'Adjusting Comments' },
-  { id: 'completed', title: 'Completed' },
+  { id: 'incoming', title: 'Backlog' },
+  { id: 'in-progress', title: 'Fazendo' },
+  { id: 'waiting', title: 'Aguardando Comentários' },
+  { id: 'adjusting-comments', title: 'Correção' },
+  { id: 'completed', title: 'Feito' },
 ];
 
 interface StoredData {
@@ -74,6 +74,34 @@ export const KanbanBoard: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [tasks]);
+
+  // Auto-save active tasks periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTaskId) {
+        const activeTask = tasks.find((t) => t.id === activeTaskId);
+        if (activeTask && activeTask.isActive && activeTask.timerStartedAt) {
+          const elapsedSeconds = Math.floor((Date.now() - activeTask.timerStartedAt) / 1000);
+          const updatedTask = { ...activeTask };
+          
+          if (activeTask.activeTimerType === 'doing') {
+            updatedTask.doingTime = (activeTask.doingTime || 0);
+          } else if (activeTask.activeTimerType === 'waiting') {
+            updatedTask.waitingTime = (activeTask.waitingTime || 0);
+          } else if (activeTask.activeTimerType === 'fixing') {
+            updatedTask.fixingTime = (activeTask.fixingTime || 0);
+          }
+          
+          // Update task in localStorage
+          setTasks((prevTasks) =>
+            prevTasks.map((t) => (t.id === activeTaskId ? updatedTask : t))
+          );
+        }
+      }
+    }, 5000); // Save every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [activeTaskId, tasks, setTasks]);
 
   const updateTaskInStorage = useCallback(
     (updatedTask: Task) => {
@@ -339,8 +367,8 @@ export const KanbanBoard: React.FC = () => {
   const activeTasks = tasks.filter((t) => t.columnId !== 'completed').length;
 
   return (
-    <div className="w-screen h-screen bg-dark-bg flex flex-col overflow-hidden">
-      <TopBar activeTask={activeTask} totalTimeToday={totalTimeToday} activeTasks={activeTasks} />
+    <div className="w-screen h-screen bg-white flex flex-col overflow-hidden">
+      <TopNavBar activeTask={activeTask} totalTimeToday={totalTimeToday} activeTasks={activeTasks} allTasks={tasks} />
 
       <div className="px-6 pt-4">
         <div className="inline-flex bg-dark-surface border border-dark-border rounded">

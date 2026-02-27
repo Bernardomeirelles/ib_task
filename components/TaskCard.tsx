@@ -23,6 +23,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onSendToAnalytics,
 }) => {
   const isCompleted = task.columnId === 'completed';
+  const isBacklog = task.columnId === 'incoming';
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState(task.notes);
@@ -63,25 +64,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             : 'bg-emerald-500/20 text-emerald-300';
   const columnLabel =
     task.columnId === 'incoming'
-      ? 'Incoming'
+      ? 'Backlog'
       : task.columnId === 'in-progress'
-        ? 'In Progress'
+        ? 'Fazendo'
         : task.columnId === 'waiting'
-          ? 'Waiting'
+          ? 'Aguardando'
           : task.columnId === 'adjusting-comments'
-            ? 'Adjusting'
-            : 'Completed';
+            ? 'Correção'
+            : 'Feito';
 
   return (
     <div
-      className={`bg-dark-surface border-l-4 border-t-2 ${colorBorder} ${columnAccent} rounded p-3 shadow-sm transition ${
+      className={`bg-white border-l-4 border-t-2 ${colorBorder} ${columnAccent} rounded p-3 shadow-sm transition ${
         isCompleted ? 'cursor-default' : 'hover:shadow-md cursor-move'
       }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-3" onClick={handleToggleExpand} role="button" aria-expanded={isExpanded}>
         <div className="flex items-center gap-2 min-w-0">
-          <h3 className="font-semibold text-white text-xs truncate">
+          <h3 className="font-semibold text-gray-900 text-xs truncate">
             {task.codename}
           </h3>
           <span className={`text-[9px] px-1.5 py-0.5 rounded ${columnPill}`}>{columnLabel}</span>
@@ -92,23 +93,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-mono text-white">{formatTime(elapsedTime)}</span>
+          <span className="text-xs font-mono text-gray-900">{formatTime(elapsedTime)}</span>
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (!isCompleted) {
+              if (!isCompleted && !isBacklog) {
                 onToggleTimer(task.id);
               }
             }}
             className={`p-2 rounded transition ${
-              isCompleted
-                ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+              isCompleted || isBacklog
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : task.isActive
-                  ? 'bg-yellow-status text-black hover:bg-opacity-90'
-                  : 'bg-neutral-700 text-white hover:bg-neutral-600'
+                  ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+                  : 'bg-gray-700 text-white hover:bg-gray-800'
             }`}
-            title={isCompleted ? 'Completed task' : task.isActive ? 'Pause timer' : 'Start timer'}
-            disabled={isCompleted}
+            title={isBacklog ? 'Mova para "Fazendo" para iniciar' : isCompleted ? 'Tarefa finalizada' : task.isActive ? 'Pausar' : 'Iniciar'}
+            disabled={isCompleted || isBacklog}
           >
             {task.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
@@ -121,26 +122,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'
         }`}
       >
-        <div className="pt-2 border-t border-dark-border space-y-2">
-          <div className="text-xs text-neutral-400">
-            Staffing Time: <span className="text-neutral-200">{task.staffingTime}</span>
+        <div className="pt-2 border-t border-gray-200 space-y-2">
+          <div className="text-xs text-gray-600">
+            Staffing Time: <span className="text-gray-900">{task.staffingTime}</span>
           </div>
 
           {/* Time breakdown */}
-          <div className="bg-dark-bg rounded p-2 space-y-1 text-xs">
-            <div className="flex justify-between text-neutral-300">
+          <div className="bg-gray-50 rounded p-2 space-y-1 text-xs">
+            <div className="flex justify-between text-gray-700">
               <span>Doing Time:</span>
               <span className="font-mono">{formatTime(task.doingTime)}</span>
             </div>
-            <div className="flex justify-between text-neutral-300">
+            <div className="flex justify-between text-gray-700">
               <span>Waiting Time:</span>
               <span className="font-mono">{formatTime(task.waitingTime)}</span>
             </div>
-            <div className="flex justify-between text-neutral-300">
+            <div className="flex justify-between text-gray-700">
               <span>Fixing Time:</span>
               <span className="font-mono">{formatTime(task.fixingTime)}</span>
             </div>
-            <div className="border-t border-dark-border pt-1 mt-1 flex justify-between text-neutral-100 font-semibold">
+            <div className="border-t border-gray-200 pt-1 mt-1 flex justify-between text-gray-900 font-semibold">
               <span>Total Time (D+F):</span>
               <span className="font-mono">{formatTime(task.doingTime + task.fixingTime)}</span>
             </div>
@@ -152,19 +153,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation();
                 setShowNotes(!showNotes);
               }}
-              className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white transition"
+              className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-900 transition"
             >
               <MessageSquare className="w-4 h-4" />
               <span>{notes ? 'Edit notes' : 'Add notes'}</span>
             </button>
 
             {showNotes && (
-              <div className="bg-dark-bg rounded p-2 space-y-2">
+              <div className="bg-gray-50 rounded p-2 space-y-2">
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Quick notes..."
-                  className="w-full px-2 py-1 bg-dark-bg border border-dark-border rounded text-white text-xs focus:outline-none focus:border-neutral-500 resize-none h-20"
+                  className="w-full px-2 py-1 bg-white border border-gray-300 rounded text-gray-900 text-xs focus:outline-none focus:border-gray-500 resize-none h-20"
                 />
                 <div className="flex gap-2">
                   <button
@@ -172,7 +173,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       e.stopPropagation();
                       handleSaveNotes();
                     }}
-                    className="flex-1 px-2 py-1 bg-green-status text-white text-xs rounded hover:bg-opacity-90 transition"
+                    className="flex-1 px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
                   >
                     Save
                   </button>
@@ -182,7 +183,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                       setShowNotes(false);
                       setNotes(task.notes);
                     }}
-                    className="flex-1 px-2 py-1 bg-neutral-700 text-white text-xs rounded hover:bg-neutral-600 transition"
+                    className="flex-1 px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition"
                   >
                     Cancel
                   </button>
@@ -191,7 +192,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             )}
 
             {notes && !showNotes && (
-              <p className="text-xs text-neutral-300 bg-dark-bg rounded p-2 italic">{notes}</p>
+              <p className="text-xs text-gray-700 bg-gray-50 rounded p-2 italic">{notes}</p>
             )}
           </div>
 
@@ -202,7 +203,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   e.stopPropagation();
                   onSendToAnalytics(task.id);
                 }}
-                className="text-xs text-neutral-300 hover:text-white transition"
+                className="text-xs text-gray-600 hover:text-gray-900 transition"
                 title="Send to analytics"
               >
                 <span className="inline-flex items-center gap-2">
@@ -217,7 +218,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation();
                 onDelete(task.id);
               }}
-              className="text-xs text-neutral-400 hover:text-red-status transition"
+              className="text-xs text-gray-600 hover:text-red-600 transition"
               title="Delete task"
             >
               <span className="inline-flex items-center gap-2">

@@ -49,13 +49,6 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ isOpen, onClos
           </button>
         </div>
 
-        <div className="mb-4 p-3 bg-neutral-600/20 border border-neutral-600 rounded flex items-center gap-2">
-          <span className="text-sm text-neutral-300">{t('willBeAddedTo')}</span>
-          <span className="inline-flex items-center px-2 py-1 bg-neutral-600/30 text-neutral-100 rounded text-xs font-medium">
-            + {t('incoming')}
-          </span>
-        </div>
-
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-neutral-300 mb-2">{t('taskCodename')}</label>
