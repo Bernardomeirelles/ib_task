@@ -1,204 +1,215 @@
-# IB Staffing Board - Investment Banking Workflow Manager
+# IB Task Manager
 
-A **dark mode, high-performance Kanban board** designed specifically for Investment Banking analysts to manage live staffings and deliverables with real-time timers.
+A minimalistic, ultra-fast desktop web application for Investment Banking analysts. Manages live banking tasks using a Kanban system with real-time timer tracking.
 
-Minimalistic, Bloomberg Terminal-inspired UI optimized for full-screen workspace during the entire workday.
+## Features
 
-## 🎯 Features
+- **4-Column Kanban Board**: Incoming → In Progress → Waiting/Comments → Completed
+- **Real-Time Timers**: Live tracking of time spent on each task
+- **Smart Timer Management**: Only one active timer at a time; automatically pauses previous task
+- **Visual Urgency System**: Color-coded cards based on elapsed time
+  - 🟢 0–30 min (Green)
+  - 🟡 30–90 min (Yellow)
+  - 🟠 90–180 min (Orange)
+  - 🔴 180+ min (Red - Critical)
+- **Persistent Storage**: All data saved locally via browser localStorage (100% offline)
+- **Drag & Drop**: Move tasks between columns with mouse or keyboard (1/2/3/4)
+- **Quick Notes**: Add quick comments to tasks
+- **Keyboard Shortcuts**:
+  - `N` - Create new task
+  - `Space` - Start/pause current active task
+  - `1/2/3/4` - Move active task between columns
+- **Top Status Bar**: Shows active task, total time spent today, and active task count
+- **Dark Mode**: Apple-inspired, Helvetica-based minimalist design
 
-### Kanban Board
-- **4 Columns**: Incoming → In Progress → Waiting/Comments → Completed
-- **Drag & Drop**: Move staffings between columns effortlessly
-- **Persistent State**: Everything saved to LocalStorage (100% offline)
+## Tech Stack
 
-### Real-Time Staffing Timer
-- ⏱️ **Live Timer**: HH:MM:SS format with sub-second precision
-- **Single Active Timer**: Only one staffing can run at a time
-- **Auto-Pause**: Starting a new timer automatically pauses the previous one
-- **Persistent**: Timer continues running even after page reload
-- **Timer Controls**: Start, Pause, Reset buttons per card
+- **Frontend**: Next.js (React 19)
+- **Styling**: TailwindCSS
+- **State**: Browser LocalStorage (offline first)
+- **Drag & Drop**: react-beautiful-dnd
+- **UI Icons**: lucide-react
 
-### Visual Urgency System
-Cards automatically change color based on elapsed time:
-- 🟢 **0-30 min**: Green (fresh assignment)
-- 🟡 **30-90 min**: Yellow (building up)
-- 🟠 **90-180 min**: Orange (heating up)
-- 🔴 **180+ min**: Red + Pulsing (critical / VP about to call)
+## Installation
 
-### Staffing Card Details
-Each card contains:
-- **Task Codename**: Short project name (Project Falcon, Deck Update, etc.)
-- **Staffing Time**: HH:MM when the analyst was assigned
-- **Elapsed Time**: Live running timer
-- **Quick Notes**: Add comments to each staffing
-- **Status**: Automatically marked completed when moved to final column
+### Prerequisites
 
-### User Experience
-- ✨ Clean, minimalist dark UI (Bloomberg Terminal aesthetic)
-- ⚡ Ultra-fast performance (no backend, pure frontend)
-- 🖥️ Fullscreen optimized layout
-- 📱 Responsive design (desktop-focused)
-- ♿ Keyboard accessible
+- Node.js 18+ installed
+- npm or yarn package manager
 
-## 🚀 Quick Start
+### Setup
 
-### Installation
-```bash
-npm install
+1. **Navigate to project directory**:
+   ```bash
+   cd /path/to/ib
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Open in browser**:
+   - The app automatically opens on `http://localhost:3000`
+   - Full-screen recommended for best UX
+   - Press `F11` for full-screen mode in your browser
+
+## Project Structure
+
+```
+ib/
+├── app/
+│   ├── layout.tsx              # Root layout with metadata
+│   ├── page.tsx                # Main entry point
+│   └── globals.css             # Global styles & dark mode
+├── components/
+│   ├── KanbanBoard.tsx         # Main board logic & state
+│   ├── KanbanColumn.tsx        # Column with droppable area
+│   ├── TaskCard.tsx            # Individual task card
+│   ├── TopBar.tsx              # Status bar (top of app)
+│   └── CreateTaskModal.tsx     # New task creation modal
+├── hooks/
+│   ├── useLocalStorage.ts      # localStorage persistence hook
+│   ├── useTimer.ts             # Timer interval management
+│   └── useKeyboardShortcuts.ts # Keyboard event handling
+├── types/
+│   └── index.ts                # TypeScript interfaces
+├── utils/
+│   └── timeUtils.ts            # Time formatting & color logic
+├── package.json                # Dependencies & scripts
+├── tailwind.config.ts          # Tailwind configuration
+├── tsconfig.json               # TypeScript configuration
+├── next.config.js              # Next.js configuration
+└── postcss.config.js           # PostCSS configuration
 ```
 
-### Development
-```bash
-npm run dev
-```
+## Usage Guide
 
-Open `http://localhost:5173` in your browser.
+### Creating a Task
 
-### Production Build
-```bash
-npm run build
-```
-
-## 🏗️ Architecture
-
-### Technology Stack
-- **Frontend**: React 19 + TypeScript
-- **Build**: Vite (lightning-fast bundler)
-- **Styling**: Tailwind CSS
-- **State**: React hooks + LocalStorage
-- **No dependencies**: No databases, APIs, or servers
-
-### Project Structure
-```
-src/
-├── components/              # React components
-│   ├── KanbanCard.tsx          # Individual staffing card with timer
-│   ├── KanbanColumn.tsx        # Kanban column container
-│   └── NewCardForm.tsx         # Modal form to create staffings
-├── services/                # Business logic
-│   └── kanbanService.ts        # Kanban operations & timer logic
-├── types/                   # TypeScript interfaces
-│   └── index.ts                # StaffingCard, ColumnType, etc.
-├── App.tsx                  # Main application component
-├── main.tsx                 # React entry point
-└── index.css                # Global styles (dark mode)
-```
-
-### Component Flow
-```
-App
-├── KanbanColumn × 4 (Incoming, In Progress, Waiting, Completed)
-│   └── KanbanCard × N (each staffing)
-│       ├── Timer Display (HH:MM:SS + urgency color)
-│       ├── Timer Controls (Start, Pause, Reset)
-│       └── Notes Section
-└── NewCardForm (modal)
-```
-
-## 💻 Usage
-
-### Creating a Staffing
-1. Click **"+ NEW STAFFING"** button
-2. Enter **Task Codename** (e.g., "Project Falcon")
-3. Enter **Staffing Time** (e.g., "09:30")
-4. Click **"Create Staffing"**
+1. Press `N` or click the green `+` button (bottom-right)
+2. Enter task codename (e.g., "Project Falcon", "Deck Update")
+3. Enter staffing time estimate (e.g., "2h", "30m")
+4. Click "Create"
 
 ### Managing Timers
-- **▶ START**: Begin timer on a staffing
-- **⏸ PAUSE**: Pause current timer
-- **🔄 RESET**: Reset timer to 00:00:00
 
-### Moving Staffings
-- **Drag & Drop**: Click and drag card between columns
-- **Auto-Complete**: Moving to "Completed" column stops the timer
+1. **Start Timer**: Click play button on card or press `Space` (for active task)
+2. **Pause Timer**: Click pause button or press `Space`
+3. **Active Task**: Only one card can show active timer at a time
+4. **Auto-Stop**: Timer automatically stops when moving task to "Completed"
+
+### Moving Tasks
+
+**Via Mouse**:
+- Click and drag cards between columns
+
+**Via Keyboard** (with active task selected):
+- Press `1` → Move to "Incoming"
+- Press `2` → Move to "In Progress"
+- Press `3` → Move to "Waiting/Comments"
+- Press `4` → Move to "Completed"
 
 ### Adding Notes
-- 📝 Click **"Add Notes"** or **"Edit Notes"** on a card
-- Type quick comments or context
-- Click **"Save"** to persist
 
-### Deleting Staffings
-- Click **✕** button on a card to remove it
+1. Click the comment icon on any card
+2. Type notes in the text area
+3. Click "Save" to persist
 
-## 💾 Data Persistence
+### Deleting Tasks
 
-All data is stored in **browser LocalStorage**:
-- Staffing cards and their states
-- Timer information (elapsed time, active state)
-- Column positions
-- Notes and metadata
+- Click the trash icon in the top-right corner of any card
+- Task and its time data will be permanently removed
 
-**No internet connection required** - Everything works 100% offline.
+## Data Persistence
 
-## 🎨 Design Philosophy
+- **All data stored locally** in browser localStorage under key `ib_tasks`
+- **Survives browser restart** and page reloads
+- **No server required** - 100% offline capable
+- **No data leaves your computer**
 
-- **Dark Mode**: Reduces eye strain during long workdays
-- **Terminal Aesthetic**: Bloomberg Terminal-inspired UI
-- **Minimalist**: Only essential information visible
-- **High Contrast**: Easy to read urgency colors
-- **Fullscreen Optimized**: Designed to stay open all day
-- **Fast**: No database, no round-trips, instant feedback
+## Performance Notes
 
-## 📊 Status Bar
+- Optimized for full-day use
+- Minimal CSS bundle (~50KB)
+- Efficient re-renders using React hooks
+- LocalStorage updates on every change (atomic)
+- Runs smoothly on MacBook Air and equivalent hardware
 
-Real-time indicators in the header:
-- **Active**: Number of staffings with running timers
-- **Total**: Total staffings created
-- **Done**: Number of completed staffings
-
-## ⌨️ Keyboard Shortcuts (Future)
-
-```
-N - Create new staffing
-ESC - Close modal
-SPACE - Start/Pause timer
-DEL - Delete card
-```
-
-##🔮 Future Enhancements
-
-- [ ] Keyboard shortcuts
-- [ ] Export daily summary report
-- [ ] Time budget per resource
-- [ ] Multi-day persistence/archive
-- [ ] Sound alerts on critical threshold
-- [ ] Integration with calendar APIs
-- [ ] Team dashboard view
-- [ ] Staffing time estimation
-
-## 📝 Notes
-
-- **Single Timer**: Each analyst manages their own staffings
-- **Reload Safe**: Close/reload browser without losing data
-- **No Cloud**: Runs entirely in your browser
-- **Privacy**: Zero data leaves your machine
-
-## 🛠️ Development
-
-### Run Development Server
-```bash
-npm run dev
-```
+## Build & Production
 
 ### Build for Production
+
 ```bash
 npm run build
 ```
 
-### Project Commands
+### Start Production Server
+
 ```bash
-npm install     # Install dependencies
-npm run dev     # Start dev server
-npm run build   # Build for production
-npm run preview # Preview production build
+npm start
 ```
 
-## 📄 License
+### Export as Static Site
 
-MIT
+For deployment, use Next.js static export (requires `output: 'export'` in next.config.js)
+
+## Browser Compatibility
+
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- No mobile optimization (desktop only)
+
+## Keyboard Reference
+
+| Key | Action |
+|-----|--------|
+| `N` | New task |
+| `Space` | Start/pause active task |
+| `1` | Move to "Incoming" |
+| `2` | Move to "In Progress" |
+| `3` | Move to "Waiting/Comments" |
+| `4` | Move to "Completed" |
+
+## Tips & Best Practices
+
+1. **Use short codenames** - Easier to scan and remember
+2. **Estimate staffing time** - Helps track expected vs actual
+3. **Add notes early** - Useful for context later
+4. **Complete tasks promptly** - Keeps board clean
+5. **Full-screen mode** - Optimal for all-day use on laptops
+
+## Troubleshooting
+
+### Data not persisting?
+- Check browser localStorage is enabled
+- Clear cache if seeing old data
+- Check browser DevTools → Application → LocalStorage
+
+### Timer jumping around?
+- This is expected if page was reloaded or inactive
+- Timer resumes from last known state automatically
+
+### Slow performance?
+- Close unnecessary browser tabs
+- Clear old completed tasks
+- Restart the dev server
+
+## License
+
+Private - Investment Banking Use
+
+## Support
+
+For issues or feature requests, contact development team.
 
 ---
 
-**Built for Investment Banking Analysts** 🏛️  
-*Stay focused. Stay productive. Manage your staffing efficiently.*
-
+**Last Updated**: February 2026  
+**Version**: 1.0.0
