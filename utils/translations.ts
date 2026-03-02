@@ -38,15 +38,12 @@ export const translations = {
     staffingTime: 'Tempo de Staffing:',
 
     // AnalyticsView
-    analytics: 'Analytics',
-    archivedCompletedTasks: 'Somente tarefas concluídas arquivadas',
     totalArchived: 'Total Arquivado',
     totalTime: 'Tempo Total',
     averageTime: 'Tempo Médio',
     longestTask: 'Maior Tarefa',
     workTimeByDay: 'Tempo de Trabalho por Dia da Semana',
     workDoingFixing: 'Trabalho (Fazendo + Corrigindo)',
-    waiting: 'Aguardando',
     archivedTasks: 'Tarefas Arquivadas',
     codename: 'Codename',
     staffing: 'Staffing',
@@ -102,15 +99,12 @@ export const translations = {
     staffingTime: 'Staffing Time:',
 
     // AnalyticsView
-    analytics: 'Analytics',
-    archivedCompletedTasks: 'Archived completed tasks only',
     totalArchived: 'Total Archived',
     totalTime: 'Total Time',
     averageTime: 'Average Time',
     longestTask: 'Longest Task',
     workTimeByDay: 'Work Time by Day of Week',
     workDoingFixing: 'Work (Doing + Fixing)',
-    waiting: 'Waiting',
     archivedTasks: 'Archived Tasks',
     codename: 'Codename',
     staffing: 'Staffing',

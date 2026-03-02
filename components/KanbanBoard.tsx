@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Task, Column, AnalyticsEntry } from '@/types';
 import { TopNavBar } from './TopNavBar';
@@ -369,6 +370,17 @@ export const KanbanBoard: React.FC = () => {
   return (
     <div className="w-screen h-screen bg-white flex flex-col overflow-hidden">
       <TopNavBar activeTask={activeTask} totalTimeToday={totalTimeToday} activeTasks={activeTasks} allTasks={tasks} />
+
+      {/* Logo Section */}
+      <div className="px-6 py-2 flex items-center justify-start">
+        <Image 
+          src="/ubs-logo.svg" 
+          alt="UBS Logo" 
+          width={120} 
+          height={60}
+          className="h-10 w-auto"
+        />
+      </div>
 
       <div className="px-6 pt-4">
         <div className="inline-flex bg-dark-surface border border-dark-border rounded">

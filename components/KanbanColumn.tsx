@@ -52,7 +52,6 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
                   key={task.id}
                   draggableId={task.id}
                   index={index}
-                  isDragDisabled={task.columnId === 'completed'}
                 >
                   {(provided, snapshot) => (
                     <div
