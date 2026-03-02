@@ -10,6 +10,7 @@ import { CreateTaskModal } from './CreateTaskModal';
 import { AnalyticsView } from './AnalyticsView';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useScreenWakeLock } from '@/hooks/useScreenWakeLock';
 import { Plus } from 'lucide-react';
 
 const COLUMNS: Column[] = [
@@ -35,6 +36,9 @@ export const KanbanBoard: React.FC = () => {
     []
   );
   const [activeTab, setActiveTab] = useState<'board' | 'analytics'>('board');
+
+  // Keep screen awake
+  useScreenWakeLock();
 
   // Initialize timers from localStorage
   useEffect(() => {
