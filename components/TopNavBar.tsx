@@ -19,12 +19,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   activeTasks,
   allTasks,
 }) => {
-  const completedTasks = allTasks.filter((t) => t.columnId === 'completed').length;
-  const waitingTasks = allTasks.filter((t) => t.columnId === 'waiting').length;
-  const fixingTasks = allTasks.filter((t) => t.columnId === 'adjusting-comments').length;
-  const doingTasks = allTasks.filter((t) => t.columnId === 'in-progress').length;
-  const backlogTasks = allTasks.filter((t) => t.columnId === 'incoming').length;
-
   const activeTaskTime = activeTask
     ? (activeTask.doingTime || 0) +
       (activeTask.waitingTime || 0) +
@@ -65,47 +59,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
           <div className="flex-shrink-0 border-l border-white/30 pl-4">
             <LanguageSwitcher />
-          </div>
-        </div>
-
-        {/* Row 2: Stats */}
-        <div className="grid grid-cols-6 gap-2">
-          {/* Total */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Total</div>
-            <div className="text-base font-bold text-white">
-              {formatTime(totalTimeToday)}
-            </div>
-          </div>
-
-          {/* Backlog */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Backlog</div>
-            <div className="text-base font-bold text-white">{backlogTasks}</div>
-          </div>
-
-          {/* Fazendo */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Fazendo</div>
-            <div className="text-base font-bold text-white">{doingTasks}</div>
-          </div>
-
-          {/* Aguardando */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Aguardando</div>
-            <div className="text-base font-bold text-white">{waitingTasks}</div>
-          </div>
-
-          {/* Correção */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Correção</div>
-            <div className="text-base font-bold text-white">{fixingTasks}</div>
-          </div>
-
-          {/* Feito */}
-          <div className="bg-white/20 rounded-lg p-2 border border-white/30">
-            <div className="text-xs text-white/80">Feito</div>
-            <div className="text-base font-bold text-white">{completedTasks}</div>
           </div>
         </div>
       </div>
