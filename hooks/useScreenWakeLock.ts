@@ -36,15 +36,7 @@ export const useScreenWakeLock = () => {
   }, []);
 };
 
-// Para TypeScript reconhecer WakelockSentinel
-declare global {
-  interface Navigator {
-    wakeLock?: {
-      request: (type: 'screen') => Promise<WakelockSentinel>;
-    };
-  }
-}
-
+// TypeScript types para WakeLock API
 interface WakelockSentinel {
   release: () => Promise<void>;
 }

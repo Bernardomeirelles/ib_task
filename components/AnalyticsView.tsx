@@ -132,7 +132,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries }) => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => formatTime(value)}
+                    formatter={(value) => formatTime(value as number)}
                     contentStyle={{
                       backgroundColor: '#ffffff',
                       border: '1px solid #e5e7eb',
@@ -206,7 +206,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ entries }) => {
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
                       labelStyle={{ color: '#111827', fontWeight: 'bold' }}
-                      formatter={(value: number) => formatTime(value)}
+                      formatter={(value) => formatTime(value as number)}
                       cursor={{ fill: 'rgba(230, 0, 0, 0.05)' }}
                     />
                     <Bar dataKey="doing" fill="#E60000" stackId="a" name="Doing" radius={[0, 4, 4, 0]} />

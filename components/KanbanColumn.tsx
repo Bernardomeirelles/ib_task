@@ -26,13 +26,24 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onUpdateNotes,
   onSendToAnalytics,
 }) => {
+  const columnBorderColor = 
+    columnId === 'incoming'
+      ? 'border-neutral-500'
+      : columnId === 'in-progress'
+        ? 'border-blue-500'
+        : columnId === 'waiting'
+          ? 'border-amber-400'
+          : columnId === 'adjusting-comments'
+            ? 'border-purple-500'
+            : 'border-emerald-500';
+
   return (
     <Droppable droppableId={columnId}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`bg-gray-50 rounded-lg p-4 min-h-96 flex flex-col transition shadow-lg border border-gray-200 ${
+          className={`bg-gray-50 rounded-lg p-4 min-h-96 flex flex-col transition shadow-lg border-2 ${columnBorderColor} ${
             snapshot.isDraggingOver ? 'bg-gray-100 ring-2 ring-red-500 shadow-xl' : ''
           }`}
         >

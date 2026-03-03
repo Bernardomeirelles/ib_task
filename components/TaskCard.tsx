@@ -27,10 +27,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState(task.notes);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(task.codename);
 
   const handleSaveNotes = () => {
     onUpdateNotes(task.id, notes);
     setShowNotes(false);
+  };
+
+  const handleSaveName = () => {
+    if (editedName.trim()) {
+      task.codename = editedName.trim();
+      setIsEditingName(false);
+    }
   };
 
   const handleToggleExpand = () => {
@@ -80,40 +89,71 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-3" onClick={handleToggleExpand} role="button" aria-expanded={isExpanded}>
-        <div className="flex items-center gap-2 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-xs truncate">
-            {task.codename}
-          </h3>
-          <span className={`text-[9px] px-1.5 py-0.5 rounded ${columnPill}`}>{columnLabel}</span>
-          {task.isActive && task.activeTimerType && (
-            <span className="text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300">
-              {task.activeTimerType === 'doing' ? 'D' : task.activeTimerType === 'waiting' ? 'W' : 'F'}
-            </span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          {isEditingName ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              onBlur={handleSaveName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveName();
+                if (e.key === 'Escape') {
+                  setEditedName(task.codename);
+                  setIsEditingName(false);
+                }
+              }}
+              autoFocus
+              className="w-full font-semibold text-gray-900 text-xs bg-white border border-blue-500 rounded px-1 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <h3
+              className="font-semibold text-gray-900 text-xs break-words cursor-text hover:text-blue-600 transition"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingName(true);
+              }}
+              title="Click to edit"
+            >
+              {task.codename}
+            </h3>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <span className="text-xs font-mono text-gray-900">{formatTime(elapsedTime)}</span>
           <button
             onClick={(e) => {
               e.stopPropagation();
               if (!isCompleted && !isBacklog) {
                 onToggleTimer(task.id);
+              } else {
+                setIsExpanded(!isExpanded);
               }
             }}
-            className={`p-2 rounded transition ${
+            className={`p-2 rounded transition flex-shrink-0 ${
               isCompleted || isBacklog
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-gray-300 text-gray-500 cursor-pointer'
                 : task.isActive
                   ? 'bg-yellow-500 text-black hover:bg-yellow-600'
                   : 'bg-gray-700 text-white hover:bg-gray-800'
             }`}
-            title={isBacklog ? 'Mova para "Fazendo" para iniciar' : isCompleted ? 'Tarefa finalizada' : task.isActive ? 'Pausar' : 'Iniciar'}
-            disabled={isCompleted || isBacklog}
+            title={isBacklog ? 'Click to expand' : isCompleted ? 'Click to expand' : task.isActive ? 'Pausar' : 'Iniciar'}
           >
             {task.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
           </button>
         </div>
+      </div>
+
+      {/* Expandable trigger */}
+      <div
+        className="mt-1 text-[10px] text-gray-500 hover:text-gray-700 cursor-pointer"
+        onClick={handleToggleExpand}
+        role="button"
+        aria-expanded={isExpanded}
+      >
+        {isExpanded ? '▼ Less' : '▶ More details'}
       </div>
 
       {/* Expandable Details */}
@@ -192,7 +232,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             )}
 
             {notes && !showNotes && (
-              <p className="text-xs text-gray-700 bg-gray-50 rounded p-2 italic">{notes}</p>
+              <div className="bg-blue-50 border-l-4 border-blue-400 rounded p-3">
+                <p className="text-sm text-gray-800 font-medium italic whitespace-pre-wrap">{notes}</p>
+              </div>
             )}
           </div>
 
@@ -218,7 +260,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 e.stopPropagation();
                 onDelete(task.id);
               }}
-              className="text-xs text-gray-600 hover:text-red-600 transition"
+              className="text-xs text-gray-600 hover:text-red-600 hover:bg-red-50 transition px-2 py-1 rounded"
               title="Delete task"
             >
               <span className="inline-flex items-center gap-2">
