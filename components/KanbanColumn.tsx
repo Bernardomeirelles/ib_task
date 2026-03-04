@@ -16,7 +16,7 @@ interface KanbanColumnProps {
   onSendToAnalytics: (taskId: string) => void;
 }
 
-export const KanbanColumn: React.FC<KanbanColumnProps> = ({
+const KanbanColumnComponent: React.FC<KanbanColumnProps> = ({
   columnId,
   title,
   tasks,
@@ -95,3 +95,5 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
     </Droppable>
   );
 };
+
+export const KanbanColumn = React.memo(KanbanColumnComponent);

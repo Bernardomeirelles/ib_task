@@ -4,6 +4,7 @@ interface KeyboardShortcuts {
   onNewTask?: () => void;
   onToggleTimer?: () => void;
   onMoveColumn?: (columnIndex: number) => void;
+  onOpenTaskSelector?: () => void;
 }
 
 export function useKeyboardShortcuts(callbacks: KeyboardShortcuts) {
@@ -25,7 +26,7 @@ export function useKeyboardShortcuts(callbacks: KeyboardShortcuts) {
           break;
         case '1':
           e.preventDefault();
-          callbacks.onMoveColumn?.(0);
+          callbacks.onOpenTaskSelector?.();
           break;
         case '2':
           e.preventDefault();

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Task, Column, AnalyticsEntry } from '@/types';
 import { TopNavBar } from './TopNavBar';
 import { KanbanColumn } from './KanbanColumn';
 import { CreateTaskModal } from './CreateTaskModal';
+import { TaskSelector } from './TaskSelector';
 import { AnalyticsView } from './AnalyticsView';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
@@ -30,15 +31,31 @@ export const KanbanBoard: React.FC = () => {
   const [tasks, setTasks] = useLocalStorage<Task[]>('ib_tasks', []);
   const [activeTaskId, setActiveTaskId] = useLocalStorage<string | null>('ib_active_task', null);
   const [showModal, setShowModal] = useState(false);
+  const [showTaskSelector, setShowTaskSelector] = useState(false);
   const [taskTimers, setTaskTimers] = useState<Record<string, number>>({});
   const [analyticsEntries, setAnalyticsEntries] = useLocalStorage<AnalyticsEntry[]>(
     'ib_analytics',
     []
   );
   const [activeTab, setActiveTab] = useState<'board' | 'analytics'>('board');
+  const [username, setUsername] = useState<string>('Usuário');
+
+  // Fetch username
+  useEffect(() => {
+    fetch('/api/user')
+      .then(res => res.json())
+      .then(data => setUsername(data.username))
+      .catch(() => setUsername('Usuário'));
+  }, []);
 
   // Keep screen awake
   useScreenWakeLock();
+
+  // Use ref to track tasks without causing re-renders
+  const tasksRef = useRef(tasks);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   // Initialize timers from localStorage
   useEffect(() => {
@@ -63,29 +80,43 @@ export const KanbanBoard: React.FC = () => {
     setTaskTimers(timers);
   }, [tasks]);
 
-  // Timer update interval
+  // Timer update interval - using ref to avoid recreating interval
   useEffect(() => {
     const interval = setInterval(() => {
       setTaskTimers((prev) => {
         const updated = { ...prev };
-        tasks.forEach((task) => {
-          if (task.isActive) {
+        let hasChanges = false;
+        tasksRef.current.forEach((task) => {
+          if (task.isActive && task.id in updated) {
             updated[task.id] = (updated[task.id] || 0) + 1;
+            hasChanges = true;
           }
         });
-        return updated;
+        return hasChanges ? updated : prev;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [tasks]);
+  }, []);
 
-  // Auto-save active tasks periodically
+  // Auto-save active tasks periodically - optimized
+  const activeTaskIdRef = useRef(activeTaskId);
+  useEffect(() => {
+    activeTaskIdRef.current = activeTaskId;
+  }, [activeTaskId]);
+
   useEffect(() => {
     const interval = setInterval(() => {
-      if (activeTaskId) {
-        const activeTask = tasks.find((t) => t.id === activeTaskId);
-        if (activeTask && activeTask.isActive && activeTask.timerStartedAt) {
+      const currentActiveTaskId = activeTaskIdRef.current;
+      if (currentActiveTaskId) {
+        const activeTask = tasksRef.current.find((t) => t.id === currentActiveTaskId);
+        // If active task doesn't exist anymore, clear the activeTaskId
+        if (!activeTask) {
+          setActiveTaskId(null);
+          return;
+        }
+        
+        if (activeTask.isActive && activeTask.timerStartedAt) {
           const elapsedSeconds = Math.floor((Date.now() - activeTask.timerStartedAt) / 1000);
           const updatedTask = { ...activeTask };
           
@@ -99,14 +130,14 @@ export const KanbanBoard: React.FC = () => {
           
           // Update task in localStorage
           setTasks((prevTasks) =>
-            prevTasks.map((t) => (t.id === activeTaskId ? updatedTask : t))
+            prevTasks.map((t) => (t.id === currentActiveTaskId ? updatedTask : t))
           );
         }
       }
-    }, 5000); // Save every 5 seconds
+    }, 10000); // Save every 10 seconds instead of 5
 
     return () => clearInterval(interval);
-  }, [activeTaskId, tasks, setTasks]);
+  }, [setTasks, setActiveTaskId]);
 
   const updateTaskInStorage = useCallback(
     (updatedTask: Task) => {
@@ -196,10 +227,17 @@ export const KanbanBoard: React.FC = () => {
 
   const handleDeleteTask = useCallback(
     (taskId: string) => {
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      // Clear active task before removing if it's the one being deleted
       if (activeTaskId === taskId) {
         setActiveTaskId(null);
       }
+      
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setTaskTimers((prev) => {
+        const updated = { ...prev };
+        delete updated[taskId];
+        return updated;
+      });
     },
     [setTasks, activeTaskId, setActiveTaskId]
   );
@@ -250,11 +288,19 @@ export const KanbanBoard: React.FC = () => {
       };
 
       setAnalyticsEntries((prev) => [entry, ...prev]);
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
-
+      
+      // Clear active task before removing
       if (activeTaskId === taskId) {
         setActiveTaskId(null);
       }
+      
+      // Remove task from tasks and clean up its timer
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      setTaskTimers((prev) => {
+        const updated = { ...prev };
+        delete updated[taskId];
+        return updated;
+      });
     },
     [tasks, activeTaskId, setActiveTaskId, setAnalyticsEntries, setTasks]
   );
@@ -357,6 +403,14 @@ export const KanbanBoard: React.FC = () => {
     updateTaskInStorage(updatedTask);
   };
 
+  const handleSelectTask = useCallback(
+    (taskId: string) => {
+      setShowTaskSelector(false);
+      handleToggleTimer(taskId);
+    },
+    [handleToggleTimer]
+  );
+
   useKeyboardShortcuts({
     onNewTask: () => setShowModal(true),
     onToggleTimer: () => {
@@ -365,6 +419,7 @@ export const KanbanBoard: React.FC = () => {
       }
     },
     onMoveColumn: handleMoveColumn,
+    onOpenTaskSelector: () => setShowTaskSelector(true),
   });
 
   const totalTimeToday = Object.values(taskTimers).reduce((sum, time) => sum + time, 0);
@@ -376,24 +431,29 @@ export const KanbanBoard: React.FC = () => {
       <TopNavBar activeTask={activeTask} totalTimeToday={totalTimeToday} activeTasks={activeTasks} allTasks={tasks} />
 
       {/* Logo Section */}
-      <div className="px-6 py-2 flex items-center justify-start">
-        <Image 
-          src="/ubs-logo.svg" 
-          alt="UBS Logo" 
-          width={120} 
-          height={60}
-          className="h-10 w-auto"
-        />
+      <div className="px-6 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Image 
+            src="/ubs-logo.svg" 
+            alt="UBS Logo" 
+            width={120} 
+            height={60}
+            className="h-10 w-auto"
+          />
+          <div className="text-gray-700 text-sm">
+            Olá, <span className="font-semibold">{username}</span>, seja bem-vindo.
+          </div>
+        </div>
       </div>
 
       <div className="px-6 pt-4">
-        <div className="inline-flex bg-dark-surface border border-dark-border rounded">
+        <div className="inline-flex bg-gray-100 border border-gray-300 rounded">
           <button
             onClick={() => setActiveTab('board')}
             className={`px-4 py-2 text-sm rounded-l transition ${
               activeTab === 'board'
-                ? 'bg-dark-bg text-white'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             Board
@@ -402,8 +462,8 @@ export const KanbanBoard: React.FC = () => {
             onClick={() => setActiveTab('analytics')}
             className={`px-4 py-2 text-sm rounded-r transition ${
               activeTab === 'analytics'
-                ? 'bg-dark-bg text-white'
-                : 'text-neutral-400 hover:text-white'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
             }`}
           >
             Analytics
@@ -413,7 +473,7 @@ export const KanbanBoard: React.FC = () => {
 
       <div className="flex-1 overflow-auto">
         {activeTab === 'board' ? (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext key="kanban-dnd-context" onDragEnd={handleDragEnd}>
             <div className="p-4 grid grid-cols-5 gap-4 min-h-full">
               {COLUMNS.map((column) => {
                 const columnTasks = tasks.filter((t) => t.columnId === column.id);
@@ -453,6 +513,13 @@ export const KanbanBoard: React.FC = () => {
             isOpen={showModal}
             onClose={() => setShowModal(false)}
             onCreate={handleCreateTask}
+          />
+
+          <TaskSelector
+            isOpen={showTaskSelector}
+            onClose={() => setShowTaskSelector(false)}
+            tasks={tasks}
+            onSelectTask={handleSelectTask}
           />
         </>
       )}
